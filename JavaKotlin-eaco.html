@@ -1,0 +1,2104 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EACO(Solana) DApp 开发示例 | Java/Kotlin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Fira+Code:wght@400;500&amp;display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#7B61FF',
+                        accent: '#00C2B8',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        'solana-purple': '#9945FF',
+                        'solana-blue': '#00FFA3'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                        code: ['Fira Code', 'monospace']
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+            .bg-grid {
+                background-size: 20px 20px;
+                background-image: 
+                    linear-gradient(to right, rgba(22, 93, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(22, 93, 255, 0.05) 1px, transparent 1px);
+            }
+            .code-block {
+                position: relative;
+                transition: all 0.3s ease;
+            }
+            .code-block:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+            .nav-link {
+                position: relative;
+            }
+            .nav-link::after {
+                content: '';
+                position: absolute;
+                width: 0;
+                height: 2px;
+                bottom: -2px;
+                left: 0;
+                background-color: #165DFF;
+                transition: width 0.3s ease;
+            }
+            .nav-link:hover::after {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark antialiased">
+    <!-- 顶部导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-8 h-8 rounded-md bg-gradient-to-br from-solana-purple to-solana-blue mr-2"></div>
+                        <span class="text-xl font-semibold">EACO DApp</span>
+                    </div>
+                    <nav class="hidden md:ml-10 md:flex md:space-x-8">
+                        <a href="#overview" class="nav-link text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">概览</a>
+                        <a href="#tech-stack" class="nav-link text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">技术栈</a>
+                        <a href="#code-examples" class="nav-link text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">代码示例</a>
+                        <a href="#project-structure" class="nav-link text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">项目结构</a>
+                        <a href="#demo" class="nav-link text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium">演示</a>
+                    </nav>
+                </div>
+                <div class="hidden md:block">
+                    <div class="flex items-center">
+                        <a href="https://github.com/eacocc/EACO-SDK" class="ml-4 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition duration-150 ease-in-out">
+                            <i class="fa fa-github mr-2"></i>GitHub
+                        </a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex items-center md:hidden">
+                    <button type="button" class="mobile-menu-button inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
+                        <i class="fa fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div class="mobile-menu hidden md:hidden">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="#overview" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">概览</a>
+                <a href="#tech-stack" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">技术栈</a>
+                <a href="#code-examples" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">代码示例</a>
+                <a href="#project-structure" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">项目结构</a>
+                <a href="#demo" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50">演示</a>
+                <a href="https://github.com/eacocc/EACO-SDK" class="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary hover:bg-primary/90">
+                    <i class="fa fa-github mr-2"></i>GitHub
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="pt-24 pb-16">
+        <!-- 英雄区域 -->
+        <section id="overview" class="relative bg-grid overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-solana-purple/5 pointer-events-none"></div>
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-gradient-to-r from-primary to-solana-purple text-gradient">
+                        EACO Solana DApp 开发指南
+                    </h1>
+                    <p class="text-lg md:text-xl text-gray-600 mb-8">
+                        为志愿开发者打造的完整 Java/Kotlin 网页app应用，实现 Solana 区块链上的eaco/usdt/usdc/sol等数字资产兑换与治理功能
+                    </p>
+                    <div class="flex flex-col sm:flex-row justify-center gap-4">
+                        <a href="#code-examples" class="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition duration-300 flex items-center justify-center">
+                            <i class="fa fa-code mr-2"></i>查看代码示例
+                        </a>
+                        <a href="#tech-stack" class="px-6 py-3 bg-white hover:bg-gray-50 text-dark font-medium rounded-lg border border-gray-200 shadow-md transition duration-300 flex items-center justify-center">
+                            <i class="fa fa-cubes mr-2"></i>了解技术栈
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 功能卡片 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-exchange text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">资产兑换</h3>
+                        <p class="text-gray-600">通过 Jupiter API 实现 EACO ↔ USDC ↔ SOL 实时兑换功能，支持市场最优价格</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-lock text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">钱包集成</h3>
+                        <p class="text-gray-600">支持 Phantom/Solflare 等主流 Solana 钱包连接与交易签名，确保资产安全</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-line-chart text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">价格图表</h3>
+                        <p class="text-gray-600">实时展示数字资产价格走势，提供直观的数据可视化体验</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-id-card text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">身份绑定</h3>
+                        <p class="text-gray-600">实现语义标签与钱包地址的绑定功能，建立数字身份系统</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-vote-yea text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">治理面板</h3>
+                        <p class="text-gray-600">提供提案创建与投票功能，实现社区治理的去中心化决策</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:border-primary/30 transition-all duration-300">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-code-fork text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2">开源架构</h3>
+                        <p class="text-gray-600">采用模块化设计，代码开源可扩展，便于开发者参与贡献</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 技术栈部分 -->
+        <section id="tech-stack" class="py-16 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">技术栈选型</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">精心选择的技术组合，确保系统性能、安全性和开发效率的平衡</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- 后端技术 -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-dark flex items-center justify-center mr-3">
+                                <i class="fa fa-server text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">后端技术</h3>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Kotlin + Ktor</strong> - 轻量级异步框架，适合构建高效API</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Java + Spring Boot</strong> - 企业级开发框架，生态丰富</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Coroutines</strong> - Kotlin异步编程支持</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Exposed</strong> - Kotlin SQL框架</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 区块链交互 -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-solana-purple/10 flex items-center justify-center mr-3">
+                                <i class="fa fa-link text-solana-purple"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">区块链交互</h3>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Solana RPC</strong> - 与Solana区块链交互</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Jupiter REST API</strong> - 去中心化交易所API</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Solana Web3.js</strong> - 区块链交互工具库</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>BS58</strong> - 地址编码解码工具</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 前端技术 -->
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="flex items-center mb-4">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                                <i class="fa fa-desktop text-primary"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold">前端技术</h3>
+                        </div>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>HTML + JavaScript</strong> - 基础网页技术</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Chart.js</strong> - 数据可视化库</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Solana Wallet Adapter</strong> - 钱包连接工具</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-accent mt-1 mr-2"></i>
+                                <span><strong>Tailwind CSS</strong> - 样式框架</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 项目结构 -->
+        <section id="project-structure" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">项目结构</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">Kotlin + Ktor 示例项目的目录结构，清晰的模块划分便于团队协作开发</p>
+                </div>
+                
+                <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                    <div class="p-4 bg-gray-50 border-b border-gray-100 font-medium">
+                        eaco-dapp-kotlin/
+                    </div>
+                    <div class="p-6">
+                        <pre class="font-code text-sm text-gray-800 overflow-x-auto"><code>├── src/
+│   ├── main/
+│   │   ├── kotlin/
+│   │   │   ├── App.kt                 # 应用入口点
+│   │   │   ├── JupiterController.kt   # 处理兑换逻辑
+│   │   │   ├── IdentityController.kt  # 身份绑定功能
+│   │   │   └── GovernanceController.kt # 治理提案功能
+│   │   ├── resources/
+│   │   │   ├── static/
+│   │   │   │   └── wallet.js          # 钱包交互脚本
+│   │   │   └── templates/
+│   │   │       └── index.html         # 前端页面
+│   ├── test/
+│   │   └── kotlin/                    # 单元测试代码
+├── build.gradle.kts                   # 项目构建配置
+└── README.md                          # 项目说明文档</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 代码示例部分 -->
+        <section id="code-examples" class="py-16 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">核心代码示例</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">展示项目中关键功能模块的实现代码，帮助开发者快速理解核心逻辑</p>
+                </div>
+                
+                <!-- 代码示例标签页 -->
+                <div class="mb-6 border-b border-gray-200">
+                    <div class="flex flex-wrap -mb-px">
+                        <button class="code-tab active py-4 px-5 border-b-2 border-primary text-primary font-medium" data-target="jupiter-controller">
+                            <i class="fa fa-exchange mr-2"></i>JupiterController.kt
+                        </button>
+                        <button class="code-tab py-4 px-5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-target="identity-controller">
+                            <i class="fa fa-id-card mr-2"></i>IdentityController.kt
+                        </button>
+                        <button class="code-tab py-4 px-5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-target="governance-controller">
+                            <i class="fa fa-vote-yea mr-2"></i>GovernanceController.kt
+                        </button>
+                        <button class="code-tab py-4 px-5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-target="index-html">
+                            <i class="fa fa-html5 mr-2"></i>index.html
+                        </button>
+                        <button class="code-tab py-4 px-5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-target="wallet-js">
+                            <i class="fa fa-wallet mr-2"></i>wallet.js
+                        </button>
+                        <button class="code-tab py-4 px-5 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium" data-target="app-kt">
+                            <i class="fa fa-play mr-2"></i>App.kt
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 代码内容区域 -->
+                <div class="code-content">
+                    <!-- JupiterController.kt -->
+                    <div id="jupiter-controller" class="code-pane active">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">JupiterController.kt</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.util.*
+import kotlinx.serialization.json.*
+
+class JupiterController {
+    // 创建HTTP客户端
+    private val client = HttpClient(CIO)
+    
+    /**
+     * 获取代币兑换报价
+     * @param inputMint 输入代币的Mint地址
+     * @param outputMint 输出代币的Mint地址
+     * @param amount 兑换数量（最小单位）
+     * @return 包含兑换路径和价格的JSON对象
+     */
+    suspend fun getQuote(
+        inputMint: String, 
+        outputMint: String, 
+        amount: Long
+    ): JsonObject {
+        val url = "https://quote-api.jup.ag/v6/quote"
+        
+        // 调用Jupiter API获取报价
+        val response = client.get(url) {
+            parameter("inputMint", inputMint)
+            parameter("outputMint", outputMint)
+            parameter("amount", amount)
+            parameter("slippageBps", 50) // 0.5%滑点 tolerance
+        }
+        
+        return Json.parseToJsonElement(response.bodyAsText()).jsonObject
+    }
+    
+    /**
+     * 构建兑换交易
+     * @param route 从报价获取的兑换路径
+     * @param userPubkey 用户钱包地址
+     * @return 包含交易信息的JSON对象
+     */
+    suspend fun buildSwap(route: JsonObject, userPubkey: String): JsonObject {
+        val payload = buildJsonObject {
+            put("route", route)
+            put("userPublicKey", userPubkey)
+            put("wrapUnwrapSOL", true) // 自动处理SOL与WSOL的转换
+        }
+        
+        // 调用Jupiter API构建交易
+        val response = client.post("https://quote-api.jup.ag/v6/swap") {
+            contentType(ContentType.Application.Json)
+            setBody(payload)
+        }
+        
+        return Json.parseToJsonElement(response.bodyAsText()).jsonObject
+    }
+    
+    /**
+     * 关闭HTTP客户端
+     */
+    fun close() {
+        client.close()
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">JupiterController 负责与 Jupiter API 交互，实现代币兑换功能。它包含两个主要方法：getQuote() 用于获取兑换报价，buildSwap() 用于构建实际的兑换交易。代码使用 Ktor HTTP 客户端进行网络请求，并处理 JSON 数据解析。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- IdentityController.kt -->
+                    <div id="identity-controller" class="code-pane hidden">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">IdentityController.kt</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>import io.ktor.server.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import java.util.concurrent.ConcurrentHashMap
+
+// 存储钱包地址与语义标签的映射
+private val identities = ConcurrentHashMap<string, string="">()
+
+/**
+ * 身份信息数据类
+ */
+@Serializable
+data class IdentityData(
+    val wallet: String,
+    val semanticTag: String
+)
+
+/**
+ * 配置身份相关的路由
+ */
+fun Route.identityRoutes() {
+    // 身份绑定API
+    post("/api/identity") {
+        try {
+            // 接收客户端发送的身份数据
+            val data = call.receive<identitydata>()
+            
+            // 验证钱包地址格式 (简化版)
+            if (data.wallet.length != 44) {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "无效的钱包地址"))
+                return@post
+            }
+            
+            // 存储身份信息
+            identities[data.wallet] = data.semanticTag
+            
+            // 返回成功响应
+            call.respond(mapOf(
+                "status" to "success",
+                "message" to "身份绑定成功",
+                "tag" to data.semanticTag
+            ))
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
+        }
+    }
+    
+    // 获取身份信息API
+    get("/api/identity/{wallet}") {
+        try {
+            // 获取路径参数中的钱包地址
+            val wallet = call.parameters["wallet"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "钱包地址不能为空"))
+                return@get
+            }
+            
+            // 查询身份信息
+            val tag = identities[wallet]
+            
+            if (tag != null) {
+                call.respond(mapOf(
+                    "status" to "success",
+                    "wallet" to wallet,
+                    "tag" to tag
+                ))
+            } else {
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "未找到绑定的身份信息"))
+            }
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
+        }
+    }
+}</identitydata></string,></code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">IdentityController 实现了钱包地址与语义标签的绑定功能。它提供两个API端点：POST /api/identity 用于绑定身份信息，GET /api/identity/{wallet} 用于查询指定钱包的身份标签。代码使用 ConcurrentHashMap 存储数据以支持并发访问，并包含基本的错误处理逻辑。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- GovernanceController.kt -->
+                    <div id="governance-controller" class="code-pane hidden">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">GovernanceController.kt</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>import io.ktor.server.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import kotlinx.serialization.Serializable
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+
+// 提案数据类
+@Serializable
+data class Proposal(
+    val id: String,
+    val title: String,
+    val description: String,
+    val creatorWallet: String,
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+// 投票数据类
+@Serializable
+data class Vote(
+    val proposalId: String,
+    val voterWallet: String,
+    val support: Boolean, // true表示支持，false表示反对
+    val votedAt: Long = System.currentTimeMillis()
+)
+
+// 存储提案和投票信息
+private val proposals = ConcurrentHashMap<string, proposal="">()
+private val votes = ConcurrentHashMap<string, vote="">()
+
+/**
+ * 配置治理相关的路由
+ */
+fun Route.governanceRoutes() {
+    // 创建提案
+    post("/api/proposal") {
+        try {
+            val proposalData = call.receive<map<string, string="">&gt;()
+            
+            // 验证必要字段
+            val title = proposalData["title"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "提案标题不能为空"))
+                return@post
+            }
+            
+            val description = proposalData["description"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "提案描述不能为空"))
+                return@post
+            }
+            
+            val creatorWallet = proposalData["creatorWallet"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "创建者钱包地址不能为空"))
+                return@post
+            }
+            
+            // 创建提案
+            val proposalId = UUID.randomUUID().toString()
+            val proposal = Proposal(
+                id = proposalId,
+                title = title,
+                description = description,
+                creatorWallet = creatorWallet
+            )
+            
+            proposals[proposalId] = proposal
+            
+            // 返回结果
+            call.respond(mapOf(
+                "status" to "success",
+                "proposalId" to proposalId,
+                "proposal" to proposal
+            ))
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
+        }
+    }
+    
+    // 提交投票
+    post("/api/vote") {
+        try {
+            val voteData = call.receive<map<string, string="">&gt;()
+            
+            // 验证必要字段
+            val proposalId = voteData["proposalId"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "提案ID不能为空"))
+                return@post
+            }
+            
+            // 验证提案是否存在
+            if (!proposals.containsKey(proposalId)) {
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "提案不存在"))
+                return@post
+            }
+            
+            val voterWallet = voteData["voterWallet"] ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "投票者钱包地址不能为空"))
+                return@post
+            }
+            
+            val support = voteData["support"]?.toBoolean() ?: run {
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "投票立场不能为空"))
+                return@post
+            }
+            
+            // 创建投票记录
+            val voteId = "$proposalId-$voterWallet"
+            val vote = Vote(
+                proposalId = proposalId,
+                voterWallet = voterWallet,
+                support = support
+            )
+            
+            votes[voteId] = vote
+            
+            // 返回结果
+            call.respond(mapOf(
+                "status" to "success",
+                "message" to "投票成功"
+            ))
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
+        }
+    }
+    
+    // 获取提案列表
+    get("/api/proposals") {
+        call.respond(mapOf(
+            "status" to "success",
+            "proposals" to proposals.values.toList()
+        ))
+    }
+    
+    // 获取提案投票结果
+    get("/api/proposal/{id}/votes") {
+        val proposalId = call.parameters["id"] ?: run {
+            call.respond(HttpStatusCode.BadRequest, mapOf("error" to "提案ID不能为空"))
+            return@get
+        }
+        
+        val proposalVotes = votes.values.filter { it.proposalId == proposalId }
+        val supportCount = proposalVotes.count { it.support }
+        val opposeCount = proposalVotes.size - supportCount
+        
+        call.respond(mapOf(
+            "status" to "success",
+            "proposalId" to proposalId,
+            "supportCount" to supportCount,
+            "opposeCount" to opposeCount,
+            "totalVotes" to proposalVotes.size,
+            "votes" to proposalVotes
+        ))
+    }
+}</map<string,></map<string,></string,></string,></code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">GovernanceController 实现了去中心化治理功能，包括提案创建、投票提交和结果查询。它使用UUID生成唯一提案ID，通过ConcurrentHashMap存储提案和投票数据以支持并发操作。API端点包括创建提案、提交投票、获取提案列表和查询投票结果，完整实现了治理功能闭环。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- index.html -->
+                    <div id="index-html" class="code-pane hidden">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">index.html</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;EACO Solana DApp&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"&gt;&lt;/script&gt;
+    &lt;link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet"&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+    &lt;script src="/static/wallet.js" defer&gt;&lt;/script&gt;
+    &lt;style&gt;
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-50 font-sans"&gt;
+    &lt;header class="bg-white shadow-sm py-4 px-6"&gt;
+        &lt;div class="container mx-auto flex justify-between items-center"&gt;
+            &lt;div class="flex items-center"&gt;
+                &lt;div class="w-8 h-8 rounded-md bg-gradient-to-br from-purple-600 to-blue-500 mr-2"&gt;&lt;/div&gt;
+                &lt;h1 class="text-xl font-bold"&gt;EACO Solana DApp&lt;/h1&gt;
+            &lt;/div&gt;
+            &lt;div id="walletStatus" class="flex items-center"&gt;
+                &lt;button id="connectWalletBtn" onclick="connectWallet()" 
+                    class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors"&gt;
+                    &lt;i class="fa fa-wallet mr-2"&gt;&lt;/i&gt;连接钱包
+                &lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/header&gt;
+
+    &lt;main class="container mx-auto px-6 py-8"&gt;
+        &lt;div id="walletConnectedContent" class="hidden fade-in"&gt;
+            &lt;div class="bg-white rounded-xl shadow-md p-6 mb-8"&gt;
+                &lt;h2 class="text-2xl font-bold mb-4"&gt;资产兑换&lt;/h2&gt;
+                &lt;div class="grid grid-cols-1 md:grid-cols-3 gap-6"&gt;
+                    &lt;div&gt;
+                        &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;输入代币&lt;/label&gt;
+                        &lt;select id="inputMint" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"&gt;
+                            &lt;option value="EACO_MINT_ADDRESS"&gt;EACO&lt;/option&gt;
+                            &lt;option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"&gt;USDC&lt;/option&gt;
+                            &lt;option value="So11111111111111111111111111111111111111112"&gt;SOL&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;输出代币&lt;/label&gt;
+                        &lt;select id="outputMint" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"&gt;
+                            &lt;option value="EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"&gt;USDC&lt;/option&gt;
+                            &lt;option value="So11111111111111111111111111111111111111112"&gt;SOL&lt;/option&gt;
+                            &lt;option value="EACO_MINT_ADDRESS"&gt;EACO&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;数量&lt;/label&gt;
+                        &lt;input id="amount" type="number" step="0.001" min="0.001" 
+                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" 
+                            placeholder="输入数量"&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class="mt-4 flex gap-4"&gt;
+                    &lt;button onclick="getQuote()" 
+                        class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg transition-colors"&gt;
+                        &lt;i class="fa fa-quote-right mr-2"&gt;&lt;/i&gt;获取报价
+                    &lt;/button&gt;
+                    &lt;button onclick="swap()" 
+                        class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"&gt;
+                        &lt;i class="fa fa-exchange mr-2"&gt;&lt;/i&gt;执行兑换
+                    &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;div id="quoteResult" class="mt-4 hidden p-4 bg-gray-50 rounded-lg"&gt;&lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class="grid grid-cols-1 lg:grid-cols-2 gap-8"&gt;
+                &lt;div class="bg-white rounded-xl shadow-md p-6"&gt;
+                    &lt;h2 class="text-2xl font-bold mb-4"&gt;身份绑定&lt;/h2&gt;
+                    &lt;p class="text-gray-600 mb-4"&gt;将您的钱包地址与语义标签绑定，建立您的数字身份&lt;/p&gt;
+                    &lt;div&gt;
+                        &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;语义标签&lt;/label&gt;
+                        &lt;input id="tag" type="text" 
+                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" 
+                            placeholder="输入您的语义标签（如：开发者、社区成员等）"&gt;
+                        &lt;button onclick="bindIdentity()" class="mt-4 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"&gt;
+                            &lt;i class="fa fa-link mr-2"&gt;&lt;/i&gt;绑定身份
+                        &lt;/button&gt;
+                        &lt;div id="identityResult" class="mt-4 hidden"&gt;&lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;div class="bg-white rounded-xl shadow-md p-6"&gt;
+                    &lt;h2 class="text-2xl font-bold mb-4"&gt;价格图表&lt;/h2&gt;
+                    &lt;div class="h-64"&gt;
+                        &lt;canvas id="priceChart"&gt;&lt;/canvas&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;div class="bg-white rounded-xl shadow-md p-6 mt-8"&gt;
+                &lt;h2 class="text-2xl font-bold mb-4"&gt;治理提案&lt;/h2&gt;
+                &lt;div class="mb-6"&gt;
+                    &lt;h3 class="text-lg font-semibold mb-3"&gt;创建新提案&lt;/h3&gt;
+                    &lt;div class="grid grid-cols-1 md:grid-cols-2 gap-4"&gt;
+                        &lt;div&gt;
+                            &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;提案标题&lt;/label&gt;
+                            &lt;input id="proposalTitle" type="text" 
+                                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" 
+                                placeholder="输入提案标题"&gt;
+                        &lt;/div&gt;
+                        &lt;div&gt;
+                            &lt;label class="block text-sm font-medium text-gray-700 mb-1"&gt;提案描述&lt;/label&gt;
+                            &lt;textarea id="proposalDesc" rows="2" 
+                                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" 
+                                placeholder="输入提案详细描述"&gt;&lt;/textarea&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;button onclick="createProposal()" class="mt-4 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors"&gt;
+                        &lt;i class="fa fa-paper-plane mr-2"&gt;&lt;/i&gt;提交提案
+                    &lt;/button&gt;
+                &lt;/div&gt;
+
+                &lt;div&gt;
+                    &lt;h3 class="text-lg font-semibold mb-3"&gt;现有提案&lt;/h3&gt;
+                    &lt;div id="proposalsList" class="space-y-4"&gt;
+                        &lt;!-- 提案列表将通过JavaScript动态加载 --&gt;
+                        &lt;p class="text-gray-500"&gt;暂无提案，创建第一个提案吧！&lt;/p&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+
+        &lt;div id="walletNotConnectedContent" class="text-center py-16"&gt;
+            &lt;div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4"&gt;
+                &lt;i class="fa fa-wallet text-primary text-2xl"&gt;&lt;/i&gt;
+            &lt;/div&gt;
+            &lt;h2 class="text-2xl font-bold mb-2"&gt;请连接您的Solana钱包&lt;/h2&gt;
+            &lt;p class="text-gray-600 mb-6 max-w-md mx-auto"&gt;
+                连接Phantom或Solflare等钱包以使用EACO DApp的全部功能，包括资产兑换、身份绑定和社区治理
+            &lt;/p&gt;
+            &lt;button onclick="connectWallet()" 
+                class="px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-md transition-colors pulse"&gt;
+                &lt;i class="fa fa-plug mr-2"&gt;&lt;/i&gt;连接钱包
+            &lt;/button&gt;
+        &lt;/div&gt;
+    &lt;/main&gt;
+
+    &lt;footer class="bg-white border-t border-gray-200 py-6 px-6 mt-12"&gt;
+        &lt;div class="container mx-auto text-center text-gray-600 text-sm"&gt;
+            &lt;p&gt;© 2023 EACO Solana DApp. 开源项目，由志愿开发者社区维护。&lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">index.html 是DApp的前端页面，采用Tailwind CSS构建响应式界面。页面根据钱包连接状态显示不同内容，包含资产兑换、身份绑定、价格图表和治理提案四个主要功能模块。通过JavaScript与后端API交互，实现完整的用户操作流程。页面还包含动画效果和响应式设计，提升用户体验。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- wallet.js -->
+                    <div id="wallet-js" class="code-pane hidden">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">wallet.js</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>let wallet;
+let priceChart;
+
+// 初始化页面
+document.addEventListener('DOMContentLoaded', () =&gt; {
+    // 检查是否已有钱包连接
+    checkWalletConnection();
+    
+    // 初始化价格图表
+    initPriceChart();
+    
+    // 定期刷新数据
+    setInterval(() =&gt; {
+        if (wallet) {
+            fetchProposals();
+            updatePriceChart();
+        }
+    }, 30000); // 每30秒刷新一次
+});
+
+/**
+ * 连接钱包
+ */
+async function connectWallet() {
+    try {
+        // 检查浏览器是否安装了Solana钱包扩展
+        if (window.solana &amp;&amp; window.solana.isPhantom) {
+            console.log('Phantom钱包已检测到');
+            
+            // 请求连接钱包
+            wallet = window.solana;
+            const response = await wallet.connect({ onlyIfTrusted: false });
+            
+            // 显示连接成功信息
+            showWalletConnected(response.publicKey.toString());
+            
+            // 加载数据
+            fetchProposals();
+            updatePriceChart();
+            
+            // 监听钱包断开连接事件
+            wallet.on('disconnect', handleDisconnect);
+            
+            // 监听账户变化事件
+            wallet.on('accountChanged', handleAccountChange);
+            
+        } else {
+            alert('请安装Phantom钱包扩展以使用此DApp');
+            window.open('https://phantom.app/', '_blank');
+        }
+    } catch (error) {
+        console.error('连接钱包失败:', error);
+        alert('连接钱包失败: ' + error.message);
+    }
+}
+
+/**
+ * 处理钱包断开连接
+ */
+function handleDisconnect() {
+    console.log('钱包已断开连接');
+    wallet = null;
+    showWalletDisconnected();
+}
+
+/**
+ * 处理账户变化
+ */
+function handleAccountChange(publicKey) {
+    if (publicKey) {
+        console.log('账户已切换:', publicKey.toString());
+        showWalletConnected(publicKey.toString());
+    } else {
+        handleDisconnect();
+    }
+}
+
+/**
+ * 检查钱包连接状态
+ */
+async function checkWalletConnection() {
+    if (window.solana &amp;&amp; window.solana.isPhantom) {
+        const response = await window.solana.connect({ onlyIfTrusted: true });
+        if (response.publicKey) {
+            wallet = window.solana;
+            showWalletConnected(response.publicKey.toString());
+            return true;
+        }
+    }
+    showWalletDisconnected();
+    return false;
+}
+
+/**
+ * 显示钱包已连接状态
+ */
+function showWalletConnected(publicKey) {
+    // 显示钱包地址（部分隐藏）
+    const shortAddress = publicKey.slice(0, 6) + '...' + publicKey.slice(-4);
+    document.getElementById('walletStatus').innerHTML = `
+        <div class="flex items-center">
+            <span class="mr-2 text-sm font-medium">${shortAddress}</span>
+            <button onclick="disconnectWallet()" class="text-gray-500 hover:text-red-500">
+                <i class="fa fa-sign-out"></i>
+            </button>
+        </div>
+    `;
+    
+    // 显示功能内容
+    document.getElementById('walletConnectedContent').classList.remove('hidden');
+    document.getElementById('walletNotConnectedContent').classList.add('hidden');
+}
+
+/**
+ * 显示钱包未连接状态
+ */
+function showWalletDisconnected() {
+    document.getElementById('walletStatus').innerHTML = `
+        <button id="connectWalletBtn" onclick="connectWallet()" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-colors">
+            <i class="fa fa-wallet mr-2"></i>连接钱包
+        </button>
+    `;
+    
+    // 隐藏功能内容
+    document.getElementById('walletConnectedContent').classList.add('hidden');
+    document.getElementById('walletNotConnectedContent').classList.remove('hidden');
+}
+
+/**
+ * 断开钱包连接
+ */
+async function disconnectWallet() {
+    if (wallet) {
+        await wallet.disconnect();
+        handleDisconnect();
+    }
+}
+
+/**
+ * 获取兑换报价
+ */
+async function getQuote() {
+    try {
+        if (!wallet) {
+            alert('请先连接钱包');
+            return;
+        }
+        
+        const inputMint = document.getElementById('inputMint').value;
+        const outputMint = document.getElementById('outputMint').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        
+        if (!amount || amount &lt;= 0) {
+            alert('请输入有效的兑换数量');
+            return;
+        }
+        
+        // 显示加载状态
+        document.getElementById('quoteResult').innerHTML = `
+            <div class="flex items-center justify-center">
+                <i class="fa fa-spinner fa-spin mr-2"></i>
+                <span>正在获取报价...</span>
+            </div>
+        `;
+        document.getElementById('quoteResult').classList.remove('hidden');
+        
+        // 转换为最小单位（假设6位小数）
+        const amountInSmallestUnit = Math.floor(amount * 1e6);
+        
+        // 调用后端API获取报价
+        const response = await fetch(`/api/quote?inputMint=${inputMint}&amp;outputMint=${outputMint}&amp;amount=${amountInSmallestUnit}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // 显示报价结果
+        const inputSymbol = document.getElementById('inputMint').options[document.getElementById('inputMint').selectedIndex].text;
+        const outputSymbol = document.getElementById('outputMint').options[document.getElementById('outputMint').selectedIndex].text;
+        const outputAmount = data.outAmount / 1e6;
+        
+        document.getElementById('quoteResult').innerHTML = `
+            <div class="font-medium mb-2">报价信息：</div>
+            <p>${amount} ${inputSymbol} 可兑换约 ${outputAmount.toFixed(6)} ${outputSymbol}</p>
+            <p class="text-sm text-gray-500 mt-1">滑点容忍度：0.5%</p>
+            <p class="text-sm text-gray-500">预计手续费：~${(data.fee / 1e9).toFixed(6)} SOL</p>
+        `;
+        
+        // 保存报价信息供后续兑换使用
+        localStorage.setItem('lastQuote', JSON.stringify(data));
+        
+    } catch (error) {
+        console.error('获取报价失败:', error);
+        document.getElementById('quoteResult').innerHTML = `
+            <div class="text-red-500">获取报价失败: ${error.message}</div>
+        `;
+        document.getElementById('quoteResult').classList.remove('hidden');
+    }
+}
+
+/**
+ * 执行兑换
+ */
+async function swap() {
+    try {
+        if (!wallet) {
+            alert('请先连接钱包');
+            return;
+        }
+        
+        // 获取之前保存的报价信息
+        const lastQuote = localStorage.getItem('lastQuote');
+        if (!lastQuote) {
+            alert('请先获取报价');
+            return;
+        }
+        
+        const quoteData = JSON.parse(lastQuote);
+        
+        // 显示加载状态
+        alert('正在准备兑换交易，请在钱包中确认...');
+        
+        // 调用后端API构建兑换交易
+        const response = await fetch('/api/swap', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                route: quoteData.route,
+                userPublicKey: wallet.publicKey.toString()
+            })
+        });
+        
+        const swapData = await response.json();
+        
+        if (swapData.error) {
+            throw new Error(swapData.error);
+        }
+        
+        // 发送交易到钱包签名
+        const transaction = swapData.swapTransaction;
+        const encodedTransaction = transaction;
+        const decodedTransaction = new Uint8Array(atob(encodedTransaction).split('').map(c =&gt; c.charCodeAt(0)));
+        
+        // 发送交易
+        const signature = await wallet.signAndSendTransaction(decodedTransaction);
+        
+        // 显示交易结果
+        alert(`兑换交易已发送，交易ID: ${signature}`);
+        console.log('交易签名:', signature);
+        
+        // 可以在这里添加交易确认轮询
+        
+    } catch (error) {
+        console.error('兑换失败:', error);
+        alert('兑换失败: ' + error.message);
+    }
+}
+
+/**
+ * 绑定身份标签
+ */
+async function bindIdentity() {
+    try {
+        if (!wallet) {
+            alert('请先连接钱包');
+            return;
+        }
+        
+        const tag = document.getElementById('tag').value.trim();
+        if (!tag) {
+            alert('请输入语义标签');
+            return;
+        }
+        
+        // 调用后端API绑定身份
+        const response = await fetch('/api/identity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                wallet: wallet.publicKey.toString(),
+                semanticTag: tag
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // 显示结果
+        document.getElementById('identityResult').innerHTML = `
+            <div class="p-3 bg-green-50 text-green-700 rounded-lg">
+                <i class="fa fa-check-circle mr-1"></i>
+                身份绑定成功！您的标签：${tag}
+            </div>
+        `;
+        document.getElementById('identityResult').classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('绑定身份失败:', error);
+        document.getElementById('identityResult').innerHTML = `
+            <div class="p-3 bg-red-50 text-red-700 rounded-lg">
+                <i class="fa fa-exclamation-circle mr-1"></i>
+                绑定身份失败: ${error.message}
+            </div>
+        `;
+        document.getElementById('identityResult').classList.remove('hidden');
+    }
+}
+
+/**
+ * 创建提案
+ */
+async function createProposal() {
+    try {
+        if (!wallet) {
+            alert('请先连接钱包');
+            return;
+        }
+        
+        const title = document.getElementById('proposalTitle').value.trim();
+        const desc = document.getElementById('proposalDesc').value.trim();
+        
+        if (!title) {
+            alert('请输入提案标题');
+            return;
+        }
+        
+        if (!desc) {
+            alert('请输入提案描述');
+            return;
+        }
+        
+        // 调用后端API创建提案
+        const response = await fetch('/api/proposal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: title,
+                description: desc,
+                creatorWallet: wallet.publicKey.toString()
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // 显示成功信息
+        alert(`提案创建成功！提案ID: ${data.proposalId}`);
+        
+        // 清空输入框
+        document.getElementById('proposalTitle').value = '';
+        document.getElementById('proposalDesc').value = '';
+        
+        // 刷新提案列表
+        fetchProposals();
+        
+    } catch (error) {
+        console.error('创建提案失败:', error);
+        alert('创建提案失败: ' + error.message);
+    }
+}
+
+/**
+ * 获取提案列表
+ */
+async function fetchProposals() {
+    try {
+        const response = await fetch('/api/proposals');
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        const proposalsList = document.getElementById('proposalsList');
+        
+        if (data.proposals &amp;&amp; data.proposals.length &gt; 0) {
+            proposalsList.innerHTML = '';
+            
+            // 按创建时间排序（最新的在前）
+            const sortedProposals = data.proposals.sort((a, b) =&gt; b.createdAt - a.createdAt);
+            
+            sortedProposals.forEach(proposal =&gt; {
+                const date = new Date(proposal.createdAt);
+                const formattedDate = date.toLocaleString();
+                
+                // 简化显示的钱包地址
+                const shortWallet = proposal.creatorWallet.slice(0, 6) + '...' + proposal.creatorWallet.slice(-4);
+                
+                const proposalElement = document.createElement('div');
+                proposalElement.className = 'p-4 border border-gray-200 rounded-lg hover:border-primary/30 transition-colors';
+                proposalElement.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold">${proposal.title}</h4>
+                        <span class="text-xs text-gray-500">${formattedDate}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-3">${proposal.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500">创建者: ${shortWallet}</span>
+                        <button onclick="showVotingPanel('${proposal.id}')" class="text-sm text-primary hover:text-primary/80">
+                            投票 / 查看结果
+                        </button>
+                    </div>
+                    <div id="votingPanel-${proposal.id}" class="hidden mt-3 pt-3 border-t border-gray-100"></div>
+                `;
+                
+                proposalsList.appendChild(proposalElement);
+            });
+        } else {
+            proposalsList.innerHTML = '<p class="text-gray-500">暂无提案，创建第一个提案吧！</p>';
+        }
+        
+    } catch (error) {
+        console.error('获取提案列表失败:', error);
+    }
+}
+
+/**
+ * 显示投票面板
+ */
+async function showVotingPanel(proposalId) {
+    try {
+        const panelId = `votingPanel-${proposalId}`;
+        const panel = document.getElementById(panelId);
+        
+        // 切换面板显示状态
+        if (!panel.classList.contains('hidden')) {
+            panel.classList.add('hidden');
+            return;
+        }
+        
+        // 显示加载状态
+        panel.innerHTML = `
+            <div class="flex items-center justify-center">
+                <i class="fa fa-spinner fa-spin mr-2"></i>
+                <span>加载投票信息...</span>
+            </div>
+        `;
+        panel.classList.remove('hidden');
+        
+        // 获取投票结果
+        const response = await fetch(`/api/proposal/${proposalId}/votes`);
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // 计算支持率
+        const supportRate = data.totalVotes &gt; 0 
+            ? Math.round((data.supportCount / data.totalVotes) * 100) 
+            : 0;
+        
+        // 更新面板内容
+        panel.innerHTML = `
+            <div class="mb-3">
+                <div class="flex justify-between text-sm mb-1">
+                    <span>支持: ${data.supportCount}</span>
+                    <span>反对: ${data.opposeCount}</span>
+                    <span>总票数: ${data.totalVotes}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-500 h-2 rounded-full" style="width: ${supportRate}%"></div>
+                </div>
+                <div class="text-right text-xs text-gray-500 mt-1">支持率: ${supportRate}%</div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="voteOnProposal('${proposalId}', true)" class="flex-1 px-3 py-1 bg-green-100 hover:bg-green-200 text-green-800 rounded text-sm transition-colors">
+                    <i class="fa fa-check mr-1"></i>支持
+                </button>
+                <button onclick="voteOnProposal('${proposalId}', false)" class="flex-1 px-3 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded text-sm transition-colors">
+                    <i class="fa fa-times mr-1"></i>反对
+                </button>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('获取投票信息失败:', error);
+        document.getElementById(`votingPanel-${proposalId}`).innerHTML = `
+            <div class="text-red-500 text-sm">加载投票信息失败: ${error.message}</div>
+        `;
+    }
+}
+
+/**
+ * 对提案进行投票
+ */
+async function voteOnProposal(proposalId, support) {
+    try {
+        if (!wallet) {
+            alert('请先连接钱包');
+            return;
+        }
+        
+        // 调用后端API提交投票
+        const response = await fetch('/api/vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                proposalId: proposalId,
+                voterWallet: wallet.publicKey.toString(),
+                support: support
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // 显示成功信息
+        alert('投票成功！');
+        
+        // 刷新投票面板
+        showVotingPanel(proposalId);
+        
+    } catch (error) {
+        console.error('投票失败:', error);
+        alert('投票失败: ' + error.message);
+    }
+}
+
+/**
+ * 初始化价格图表
+ */
+function initPriceChart() {
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    
+    // 生成模拟数据
+    const now = new Date();
+    const labels = [];
+    const eacoData = [];
+    const solData = [];
+    
+    for (let i = 23; i &gt;= 0; i--) {
+        const time = new Date(now - i * 3600000); // 过去24小时，每小时一个数据点
+        labels.push(time.getHours() + ':00');
+        
+        // 生成模拟价格数据
+        const baseEaco = 0.5 + Math.random() * 0.3;
+        const baseSol = 20 + Math.random() * 5;
+        
+        eacoData.push(baseEaco.toFixed(3));
+        solData.push(baseSol.toFixed(2));
+    }
+    
+    // 创建图表
+    priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'EACO/USDC',
+                    data: eacoData,
+                    borderColor: '#165DFF',
+                    backgroundColor: 'rgba(22, 93, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'SOL/USDC',
+                    data: solData,
+                    borderColor: '#9945FF',
+                    backgroundColor: 'rgba(153, 69, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: false
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+/**
+ * 更新价格图表数据
+ */
+function updatePriceChart() {
+    if (!priceChart) return;
+    
+    // 模拟新数据
+    const lastEaco = parseFloat(priceChart.data.datasets[0].data[priceChart.data.datasets[0].data.length - 1]);
+    const lastSol = parseFloat(priceChart.data.datasets[1].data[priceChart.data.datasets[1].data.length - 1]);
+    
+    // 小幅波动
+    const newEaco = (lastEaco + (Math.random() - 0.5) * 0.05).toFixed(3);
+    const newSol = (lastSol + (Math.random() - 0.5) * 0.5).toFixed(2);
+    
+    // 更新数据
+    priceChart.data.datasets[0].data.shift();
+    priceChart.data.datasets[0].data.push(newEaco);
+    
+    priceChart.data.datasets[1].data.shift();
+    priceChart.data.datasets[1].data.push(newSol);
+    
+    // 更新时间标签
+    const now = new Date();
+    priceChart.data.labels.shift();
+    priceChart.data.labels.push(now.getHours() + ':00');
+    
+    priceChart.update();
+}</code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">wallet.js 实现了前端与钱包的交互逻辑以及与后端API的通信。它处理钱包连接/断开、账户切换等事件，实现了资产兑换、身份绑定、提案创建和投票等核心功能。代码还包含价格图表的初始化和更新逻辑，并通过事件监听和定期刷新保持数据的实时性。错误处理和用户反馈机制确保了良好的用户体验。</p>
+                        </div>
+                    </div>
+                    
+                    <!-- App.kt -->
+                    <div id="app-kt" class="code-pane hidden">
+                        <div class="code-block bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-100">
+                            <div class="flex justify-between items-center p-4 bg-gray-100 border-b border-gray-200">
+                                <h3 class="font-medium text-gray-800">App.kt</h3>
+                                <button class="copy-btn p-2 text-gray-500 hover:text-primary transition-colors">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="p-4">
+                                <pre class="font-code text-sm overflow-x-auto"><code>import io.ktor.server.application.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.routing.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.http.*
+import io.ktor.server.static.*
+import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.html.*
+import kotlinx.html.*
+import io.ktor.server.engine.addShutdownHook
+
+fun main() {
+    // 创建并启动服务器
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
+        .start(wait = true)
+}
+
+fun Application.module() {
+    // 安装默认 headers
+    install(DefaultHeaders) {
+        header("X-Engine", "Ktor")
+        header("X-Application", "EACO DApp")
+    }
+    
+    // 安装内容协商插件，支持JSON序列化/反序列化
+    install(ContentNegotiation) {
+        json()
+    }
+    
+    // 安装CORS插件，允许跨域请求
+    install(CORS) {
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Patch)
+        allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
+        anyHost() // 开发环境允许所有主机，生产环境应限制特定域名
+    }
+    
+    // 创建Jupiter控制器实例
+    val jupiterController = JupiterController()
+    
+    // 注册关闭钩子，在服务器关闭时释放资源
+    environment.monitor.addShutdownHook {
+        jupiterController.close()
+        println("服务器已关闭，资源已释放")
+    }
+    
+    // 配置路由
+    routing {
+        // 提供静态资源
+        static("/static") {
+            resources("static")
+        }
+        
+        // 首页路由
+        get("/") {
+            call.respondHtml(HttpStatusCode.OK) {
+                head {
+                    title("EACO Solana DApp")
+                }
+                body {
+                    // 实际内容将由resources/templates/index.html提供
+                    // 这里只是作为示例，实际项目中使用模板引擎
+                    include("templates/index.html")
+                }
+            }
+        }
+        
+        // 兑换相关API
+        route("/api") {
+            // 获取兑换报价
+            get("/quote") {
+                try {
+                    val inputMint = call.parameters["inputMint"] ?: run {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "inputMint参数不能为空"))
+                        return@get
+                    }
+                    
+                    val outputMint = call.parameters["outputMint"] ?: run {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "outputMint参数不能为空"))
+                        return@get
+                    }
+                    
+                    val amountStr = call.parameters["amount"] ?: run {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "amount参数不能为空"))
+                        return@get
+                    }
+                    
+                    val amount = try {
+                        amountStr.toLong()
+                    } catch (e: NumberFormatException) {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "amount必须是有效的数字"))
+                        return@get
+                    }
+                    
+                    // 调用JupiterController获取报价
+                    val quote = jupiterController.getQuote(inputMint, outputMint, amount)
+                    call.respond(quote)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "获取报价失败: ${e.message}"))
+                }
+            }
+            
+            // 构建兑换交易
+            post("/swap") {
+                try {
+                    val request = call.receive<map<string, any="">&gt;()
+                    val route = request["route"] as? Map<string, any=""> ?: run {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "route参数不能为空"))
+                        return@post
+                    }
+                    
+                    val userPublicKey = request["userPublicKey"] as? String ?: run {
+                        call.respond(HttpStatusCode.BadRequest, mapOf("error" to "userPublicKey参数不能为空"))
+                        return@post
+                    }
+                    
+                    // 转换为JsonObject
+                    val routeJson = convertMapToJsonObject(route)
+                    
+                    // 调用JupiterController构建交易
+                    val swapResult = jupiterController.buildSwap(routeJson, userPublicKey)
+                    call.respond(swapResult)
+                } catch (e: Exception) {
+                    call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "构建交易失败: ${e.message}"))
+                }
+            }
+        }
+        
+        // 身份相关路由
+        identityRoutes()
+        
+        // 治理相关路由
+        governanceRoutes()
+    }
+}
+
+/**
+ * 将Map转换为JsonObject
+ */
+fun convertMapToJsonObject(map: Map<string, any="">): JsonObject {
+    return buildJsonObject {
+        map.forEach { (key, value) -&gt;
+            when (value) {
+                is Map&lt;*, *&gt; -&gt; {
+                    @Suppress("UNCHECKED_CAST")
+                    put(key, convertMapToJsonObject(value as Map<string, any="">))
+                }
+                is List&lt;*&gt; -&gt; {
+                    put(key, JsonArray(value.map { element -&gt;
+                        when (element) {
+                            is Map&lt;*, *&gt; -&gt; {
+                                @Suppress("UNCHECKED_CAST")
+                                convertMapToJsonObject(element as Map<string, any="">)
+                            }
+                            is Number -&gt; JsonPrimitive(element)
+                            is Boolean -&gt; JsonPrimitive(element)
+                            is String -&gt; JsonPrimitive(element)
+                            null -&gt; JsonNull
+                            else -&gt; JsonPrimitive(element.toString())
+                        }
+                    }))
+                }
+                is Number -&gt; put(key, JsonPrimitive(value))
+                is Boolean -&gt; put(key, JsonPrimitive(value))
+                is String -&gt; put(key, JsonPrimitive(value))
+                null -&gt; put(key, JsonNull)
+                else -&gt; put(key, JsonPrimitive(value.toString()))
+            }
+        }
+    }
+}</string,></string,></string,></string,></map<string,></code></pre>
+                            </div>
+                        </div>
+                        <div class="mt-4 bg-blue-50 border-l-4 border-primary p-4 rounded">
+                            <h4 class="font-medium text-primary mb-2">代码说明</h4>
+                            <p class="text-gray-700 text-sm">App.kt 是Ktor应用的入口点，负责配置和启动服务器。它安装了必要的插件（内容协商、CORS等），设置了路由规则，并整合了各个功能控制器。代码实现了API端点与控制器方法的映射，处理参数验证和错误处理，并提供静态资源访问。convertMapToJsonObject 函数用于将前端发送的JSON数据转换为Kotlin的JsonObject，方便后续处理。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 演示部分 -->
+        <section id="demo" class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">快速启动指南</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">按照以下步骤在本地环境中运行EACO DApp项目</p>
+                </div>
+                
+                <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                    <div class="p-6">
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                    <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-2">1</span>
+                                    克隆项目代码
+                                </h3>
+                                <div class="bg-gray-50 p-3 rounded-lg font-code text-sm overflow-x-auto">
+                                    <code>git clone https://github.com/eacocc/EACO-SDK/EACO-SDK.git</code>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                    <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-2">2</span>
+                                    进入项目目录
+                                </h3>
+                                <div class="bg-gray-50 p-3 rounded-lg font-code text-sm overflow-x-auto">
+                                    <code>cd EACO-SDK</code>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                    <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-2">3</span>
+                                    启动应用
+                                </h3>
+                                <div class="bg-gray-50 p-3 rounded-lg font-code text-sm overflow-x-auto">
+                                    <code>./gradlew run</code>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-2">Windows系统使用: <code class="bg-gray-100 px-1 py-0.5 rounded">gradlew.bat run</code></p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-lg font-semibold mb-3 flex items-center">
+                                    <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-sm mr-2">4</span>
+                                    访问应用
+                                </h3>
+                                <div class="bg-gray-50 p-3 rounded-lg font-code text-sm overflow-x-auto">
+                                    <code>http://localhost:8080</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 p-4 bg-green-50 border border-green-100 rounded-lg">
+                            <h4 class="font-medium text-green-800 mb-2 flex items-center">
+                                <i class="fa fa-info-circle mr-2"></i>开发提示
+                            </h4>
+                            <ul class="text-sm text-green-700 space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle mt-1 mr-2"></i>
+                                    <span>确保已安装Java 11或更高版本</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle mt-1 mr-2"></i>
+                                    <span>开发环境建议使用IntelliJ IDEA或Android Studio</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle mt-1 mr-2"></i>
+                                    <span>测试网环境下使用，请安装Phantom钱包并切换到Devnet</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fa fa-check-circle mt-1 mr-2"></i>
+                                    <span>如需修改端口，可在application.conf中配置</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 贡献指南 -->
+        <section class="py-16 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">加入开发</h2>
+                    <p class="text-gray-600 max-w-2xl mx-auto">EACO DApp是一个开源项目，欢迎所有志愿开发者参与贡献</p>
+                </div>
+                
+                <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-code text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">代码贡献</h3>
+                        <p class="text-gray-600 mb-4">提交bug修复、功能改进或新特性实现，帮助我们完善DApp功能</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>遵循项目代码风格和规范</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>提交清晰的commit信息</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>为新功能编写单元测试</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-book text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">文档完善</h3>
+                        <p class="text-gray-600 mb-4">帮助改进项目文档，包括API文档、使用教程和开发指南</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>编写清晰易懂的使用教程</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>完善API文档和参数说明</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>翻译文档到不同语言</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-bug text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">测试反馈</h3>
+                        <p class="text-gray-600 mb-4">测试DApp功能，报告bug并提供改进建议</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>在不同环境中测试功能</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>详细报告发现的问题和复现步骤</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>提供用户体验改进建议</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                        <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-comments text-primary text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">社区参与</h3>
+                        <p class="text-gray-600 mb-4">参与社区讨论，帮助其他用户，共同推动项目发展</p>
+                        <ul class="space-y-2 text-gray-700">
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>回答社区问题，帮助新用户</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>参与功能规划和方向讨论</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-angle-right text-primary mt-1 mr-2"></i>
+                                <span>分享使用经验和案例</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-12 text-center">
+                    <a href="https://github.com/eacocc/EACO-SDK" class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-lg shadow-lg shadow-primary/20 transition duration-300">
+                        <i class="fa fa-github mr-2"></i>在GitHub上贡献代码
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 rounded-md bg-gradient-to-br from-solana-purple to-solana-blue mr-2"></div>
+                        <span class="text-xl font-semibold">EACO DApp</span>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        基于Solana区块链的开源DApp，由志愿开发者社区共同维护，致力于推动去中心化金融的发展。
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#overview" class="hover:text-white transition-colors">项目概览</a></li>
+                        <li><a href="#tech-stack" class="hover:text-white transition-colors">技术栈</a></li>
+                        <li><a href="#code-examples" class="hover:text-white transition-colors">代码示例</a></li>
+                        <li><a href="#demo" class="hover:text-white transition-colors">快速启动</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-4">资源</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">API文档</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">开发指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">常见问题</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Solana文档</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-medium mb-4">联系我们</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fa fa-github mr-2"></i>
+                            <a href="https://github.com/eacocc/EACO-SDK" class="hover:text-white transition-colors">GitHub</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-discord mr-2"></i>
+                            <a href="#" class="hover:text-white transition-colors">Discord</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-twitter mr-2"></i>
+                            <a href="#" class="hover:text-white transition-colors">Twitter</a>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fa fa-envelope mr-2"></i>
+                            <a href="mailto:eaco2cc@gmail.com" class="hover:text-white transition-colors">eaco2cc@gmail.com</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2025 EACO Java/Kotlin DApp 开源项目. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- 回到顶部按钮 -->
+    <button id="backToTop" class="fixed bottom-6 right-6 bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-primary/90">
+        <i class="fa fa-arrow-up"></i>
+    </button>
+    
+    <script>
+        // 标签页切换功能
+        document.querySelectorAll('.code-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有标签页的active类
+                document.querySelectorAll('.code-tab').forEach(t => {
+                    t.classList.remove('active', 'border-primary', 'text-primary');
+                    t.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                // 给当前点击的标签页添加active类
+                tab.classList.add('active', 'border-primary', 'text-primary');
+                tab.classList.remove('border-transparent', 'text-gray-500');
+                
+                // 隐藏所有内容面板
+                document.querySelectorAll('.code-pane').forEach(pane => {
+                    pane.classList.add('hidden');
+                    pane.classList.remove('active');
+                });
+                
+                // 显示对应的内容面板
+                const target = tab.getAttribute('data-target');
+                document.getElementById(target).classList.remove('hidden');
+                document.getElementById(target).classList.add('active');
+            });
+        });
+        
+        // 复制代码功能
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const codeBlock = btn.closest('.code-block').querySelector('code');
+                const textToCopy = codeBlock.textContent;
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // 显示复制成功提示
+                    const originalIcon = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa fa-check"></i>';
+                    btn.classList.add('text-green-500');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalIcon;
+                        btn.classList.remove('text-green-500');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('无法复制文本: ', err);
+                });
+            });
+        });
+        
+        // 移动端菜单切换
+        document.querySelector('.mobile-menu-button').addEventListener('click', () => {
+            document.querySelector('.mobile-menu').classList.toggle('hidden');
+        });
+        
+        // 回到顶部按钮
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.remove('opacity-0', 'invisible');
+                backToTopBtn.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopBtn.classList.add('opacity-0', 'invisible');
+                backToTopBtn.classList.remove('opacity-100', 'visible');
+            }
+            
+            // 导航栏滚动效果
+            const header = document.querySelector('header');
+            if (window.pageYOffset > 50) {
+                header.classList.add('shadow-md');
+                header.classList.remove('border-b');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('border-b');
+            }
+        });
+        
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    // 关闭移动端菜单（如果打开）
+                    document.querySelector('.mobile-menu').classList.add('hidden');
+                    
+                    // 滚动到目标位置
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80, // 考虑导航栏高度
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+
+
+</body></html>
